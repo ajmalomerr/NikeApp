@@ -1,9 +1,9 @@
-import { Text, FlatList, View, StyleSheet, Pressable, Alert } from 'react-native';
+import { Text, FlatList, View, StyleSheet, Pressable, Alert, ActivityIndicator } from 'react-native';
 // import cart from '../data/cart';
 import CartListItem from '../components/CartListItem';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { cartSlice, selectDeliveryPrice, selectSubTotal, selectedCartItems, selectedTotalPrice } from '../store/cartSlice';
+import { cartSlice, creatOrders, selectDeliveryPrice, selectSubTotal, selectedCartItems, selectedTotalPrice } from '../store/cartSlice';
 import { useCreateOrderMutation } from '../store/apisLice';
 
 const ShoppingCartTotals = () => {
@@ -35,29 +35,27 @@ const ShoppingCartTotals = () => {
 };
 
 const ShoppingCart = ({ navigation }) => {
-    const Subtotal = useSelector(selectSubTotal)
+    const subtotal = useSelector(selectSubTotal)
     const numberOfCartItems = useSelector(selectedCartItems)
     const delievryPrice = useSelector(selectDeliveryPrice)
     const totalPrice = useSelector(selectedTotalPrice)
-    const currentDate = new Date();
-    const options = { weekday: 'short', month: 'short', day: 'numeric' };
-    const formattedDate = currentDate.toLocaleDateString(undefined, options);
-
-
-    // useEffect(() => {
-    //     navigation.setOptions({ title: 'Cart', headerShown: true, headerMode: "float", })
-    // }, []);
-
     const dispatch = useDispatch()
 
     const cart = useSelector((state) => state.cart.item);
 
-    const [createOrder, { data, isLoading, error }] = useCreateOrderMutation();
+    // const [createOrder, { data, isLoading, error }] = useCreateOrderMutation();
+    const { createOrderStatus, loader } = useSelector((state) => state?.cart);
 
     const onCreateOrder = async () => {
-        const result = await createOrder({
-            items: cart,
-            Subtotal,
+        let items = [];
+
+        cart?.map((item) => {
+            items.push(item?.product)
+        });
+
+        const result = {
+            products: items,
+            subtotal,
             delievryPrice,
             totalPrice,
             customer: {
@@ -65,19 +63,24 @@ const ShoppingCart = ({ navigation }) => {
                 address: "My home",
                 email: "ajmal@gmail.com"
             },
-            orderOn: formattedDate
-        });
-        
-        if (result?.data?.status == "1000") {
-            Alert.alert(
-                "Order has been submitted",
-                `Your order reference is : ${result?.data?.data?.ref}`
-            );
-            navigation?.goBack()
-            dispatch(cartSlice.actions.clearCart())
-        }
+
+        };
+
+        dispatch(creatOrders(result))
+        console.log("submitted", JSON.stringify(await createOrderStatus))
+
 
     }
+
+    if (createOrderStatus == "1000") {
+        dispatch(cartSlice.actions.clearCart())
+        Alert.alert( "Order has been placed successfully" );
+        navigation.popToTop()
+    }
+
+    // if (loader) {
+    //     return <View style={styles.loader}><ActivityIndicator color={'blue'} size={"large"} /></View>
+    // }
 
     return (
         <>
@@ -90,7 +93,7 @@ const ShoppingCart = ({ navigation }) => {
                 ListFooterComponent={ShoppingCartTotals}
             />
             {numberOfCartItems != 0 ?
-                <Pressable onPress={onCreateOrder} style={styles.button}>
+                <Pressable onPress={() => onCreateOrder()} style={styles.button}>
                     <Text style={styles.buttonText}>Checkout</Text>
                 </Pressable> : null}
 

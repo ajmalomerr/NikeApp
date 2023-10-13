@@ -1,26 +1,25 @@
 import { StyleSheet, Text, View, Image, FlatList, Pressable, ActivityIndicator } from 'react-native';
 import { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { productsSlice } from '../store/productSlice';
+import { fetchProducts, productsSlice } from '../store/productSlice';
 import { useGetProductsQuery } from '../store/apisLice';
 
 const ProductsScreen = ({ navigation }) => {
-
-    // const products = useSelector((state) => state?.products?.products);
-
     const dispatch = useDispatch();
+    const { products, loading, error } = useSelector((state) => state?.products);
 
-    const { data, isLoading, error } = useGetProductsQuery()
 
-    if (isLoading) {
+    useEffect(() => {
+        dispatch(fetchProducts());
+    }, []);
+
+    if (loading) {
         return <View style={styles.loader}><ActivityIndicator color={'blue'} size={"large"} /></View>
     }
 
     if (error) {
         return <View style={styles.loader}><Text>error fetching products : {error?.error}</Text></View>
     }
-
-    const products = data?.data
 
     return (
         <FlatList

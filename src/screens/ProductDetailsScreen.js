@@ -3,37 +3,45 @@ import {
     View,
     Image,
     FlatList,
-    useWindowDimensions,
     Text,
     ScrollView,
     Pressable,
     Alert,
     ActivityIndicator,
     Animated,
-    Easing,
+    Dimensions
 } from 'react-native';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { cartSlice } from '../store/cartSlice';
 import { useGetProductQuery } from '../store/apisLice';
-const { width } = useWindowDimensions();
+import { addToFavourite, fetchProductDetails } from '../store/productSlice';
+import Feather from 'react-native-vector-icons/Feather';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+width = Dimensions.get('window').width;
+
 
 const ProductDetailsScreen = ({ navigation, route }) => {
+    const dispatch = useDispatch()
+    const { productDetails, loading, error } = useSelector((state) => state?.products);
+
 
     useEffect(() => {
         navigation.setOptions({ title: 'Product Details', headerShown: true, headerMode: "float", })
+        dispatch(fetchProductDetails(route.params.id))
     }, []);
 
     const animatedValue = new Animated.Value(0);
     const [isSelected, setSelected] = useState(null)
     const [selectedSize, setSelectedSize] = useState()
     const [isPressed, setPressed] = useState(false)
+    const [addedTocart, setAdeddTocart] = useState(false)
+    const [favourite, setFavourite] = useState(productDetails.favourite)
 
-    const dispatch = useDispatch()
 
-    const { data, isLoading, error } = useGetProductQuery(route.params.id);
+    // const { data, isLoading, error } = useGetProductQuery(route.params.id);
 
-    if (isLoading) {
+    if (loading) {
         return <View style={styles.loader}><ActivityIndicator color={'blue'} size={"large"} /></View>
     }
 
@@ -41,17 +49,19 @@ const ProductDetailsScreen = ({ navigation, route }) => {
         return <View style={styles.loader}><Text>error fetching products : {error?.error}</Text></View>
     }
 
-    const product = data?.data;
+    const product = productDetails;
 
     const addToCart = () => {
         if (selectedSize) {
             dispatch(cartSlice.actions.addCartItem({
                 product: {
                     ...product,
-                    sizes: selectedSize
+                    sizes: selectedSize,
+                    quantity: 1
                 },
             }));
             setPressed(false)
+            setAdeddTocart(true)
         } else {
             shakeAnimation()
             setTimeout(() => {
@@ -73,6 +83,14 @@ const ProductDetailsScreen = ({ navigation, route }) => {
         setSelectedSize(item)
         setSelected(index)
         setPressed(false)
+    }
+
+    const onPress = () => {
+        setFavourite(!favourite)
+        let req = {
+            favourite: !favourite
+        }
+        dispatch(addToFavourite({ id: route.params.id, req }))
     }
 
     return (
@@ -127,10 +145,31 @@ const ProductDetailsScreen = ({ navigation, route }) => {
                     <Text style={styles.description}>{product?.description}</Text>
                 </View>
             </ScrollView>
-
-            <Pressable onPress={() => addToCart()} style={styles.button}>
-                <Text style={styles.buttonText}>Add to cart</Text>
-            </Pressable>
+            <View style={styles.button}>
+                <Pressable
+                    onPress={() => onPress()}
+                    style={styles.wishBtn}>
+                    {!favourite ?
+                        <Feather name="heart" size={18} color="#000" />
+                        : <AntDesign name="heart" size={18} color="#ed3c67" />
+                    }
+                    <Text style={styles.wishButtonText}>  WISHLIST</Text>
+                </Pressable>
+                {addedTocart ?
+                    <Pressable
+                        onPress={() => navigation.navigate('ShoppingCart')}
+                        style={styles.addCrtBtn}>
+                        <Feather name="shopping-bag" size={18} color="#fff" />
+                        <Text style={styles.buttonText}>   GO TO CART</Text>
+                    </Pressable> :
+                    <Pressable
+                        onPress={() => addToCart()}
+                        style={styles.addCrtBtn}>
+                        <Feather name="shopping-bag" size={18} color="#fff" />
+                        <Text style={styles.buttonText}>   ADD TO CART</Text>
+                    </Pressable>
+                }
+            </View>
         </View>
     );
 };
@@ -151,7 +190,8 @@ const styles = StyleSheet.create({
         fontSize: 18,
         lineHeight: 30,
         fontWeight: '300',
-        paddingBottom: 70
+        paddingBottom: 70,
+        fontFamily: 'poppins-regular',
     },
     size: {
         fontSize: 14,
@@ -159,16 +199,23 @@ const styles = StyleSheet.create({
     },
     button: {
         position: 'absolute',
-        backgroundColor: 'black',
-        bottom: 30,
-        width: '90%',
+        backgroundColor: '#fff',
+        bottom: 0,
+        width: width,
         alignSelf: 'center',
-        padding: 20,
-        borderRadius: 100,
+        paddingHorizontal: 20,
+        paddingBottom: 25,
         alignItems: 'center',
+        flexDirection: "row",
+        justifyContent: "space-between"
     },
     buttonText: {
         color: 'white',
+        fontWeight: '500',
+        fontSize: 16,
+    },
+    wishButtonText: {
+        color: 'black',
         fontWeight: '500',
         fontSize: 16,
     },
@@ -185,6 +232,24 @@ const styles = StyleSheet.create({
         marginTop: 10,
         justifyContent: "center",
         alignItems: "center",
+    },
+    wishBtn: {
+        height: 40,
+        width: "45%",
+        borderWidth: 1,
+        borderRadius: 6,
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center"
+    },
+    addCrtBtn: {
+        height: 40,
+        width: "45%",
+        backgroundColor: "#ed3c67",
+        borderRadius: 6,
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center"
     }
 });
 

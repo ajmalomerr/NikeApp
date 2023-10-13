@@ -1,24 +1,28 @@
-import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native'
-import React from 'react';
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, View } from 'react-native'
+import React, { useEffect } from 'react';
 import { useGetOrdersQuery } from '../store/apisLice';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchOrders } from '../store/cartSlice';
 
 const Orders = () => {
+    const dispatch = useDispatch();
+    const { allOrders, loader, error } = useSelector((state) => state.cart)
 
-    const { data, isLoading, error } = useGetOrdersQuery();
+    useEffect(() => {
+        dispatch(fetchOrders())
+    }, []);
 
-    if (isLoading) {
+    if (loader) {
         return <View style={styles.loader}><ActivityIndicator color={'blue'} size={"large"} /></View>
     }
 
     if (error) {
-        return <View style={styles.loader}><Text>error fetching products : {error?.error}</Text></View>
+        return <View style={styles.loader}><Text>error fetching products : {error}</Text></View>
     }
 
-    const orders = data?.data
-
     return (
-        <View style={styles.container}>
-            {orders?.map((item, i) => {
+        <ScrollView showsVerticalScrollIndicator={false}>
+            {allOrders?.map((item, i) => {
 
                 return (
                     <View
@@ -36,7 +40,7 @@ const Orders = () => {
                     </View>
                 )
             })}
-        </View>
+        </ScrollView>
     )
 }
 
@@ -44,7 +48,7 @@ export default Orders
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
+        // flex: 1,
         // backgroundColor: "#EAEAEA"
     },
     loader: {

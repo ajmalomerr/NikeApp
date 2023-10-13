@@ -8,6 +8,8 @@ import Feather from 'react-native-vector-icons/Feather';
 import { useSelector } from 'react-redux';
 import { selectedCartItems } from '../store/cartSlice';
 import Orders from '../screens/Orders';
+import favouriteList from '../screens/favouriteList';
+import FavouriteList from '../screens/favouriteList';
 
 const Stack = createNativeStackNavigator();
 
@@ -26,6 +28,12 @@ const StackNavigator = () => {
                     headerRight: () => (
                         <View style={{ flexDirection: "row" }}>
                             <Pressable
+                                onPress={() => navigation.navigate('FavouriteList')}
+                                style={{ marginHorizontal: 10 }}
+                            >
+                                <Feather name="heart" size={21} color="gray" />
+                            </Pressable>
+                            <Pressable
                                 onPress={() => navigation.navigate('Orders')}
                                 style={{ marginHorizontal: 10 }}
                             >
@@ -43,9 +51,10 @@ const StackNavigator = () => {
                 })}
 
             />
-            <Stack.Screen name="ProductDetailsScreen" component={ProductDetailsScreen} options={{ headerShown: true, presentation: "modal" }} />
+            <Stack.Screen name="ProductDetailsScreen" component={ProductDetailsScreen} options={{ headerShown: true, }} />
             <Stack.Screen name="ShoppingCart" component={ShoppingCart} options={{ title: "Cart", }} />
             <Stack.Screen name="Orders" component={Orders} options={{ title: "Orders", }} />
+            <Stack.Screen name="FavouriteList" component={FavouriteList} options={{ title: "WISHLIST", }} />
         </Stack.Navigator>
     );
 }
