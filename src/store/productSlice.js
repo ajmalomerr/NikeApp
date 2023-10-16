@@ -5,7 +5,9 @@ const initialState = {
     products: [],
     productDetails: [],
     loading: false,
+    fecthLoader:false,
     error: null,
+    isFav: false
 }
 
 const url = 'http://localhost:3000/products'
@@ -30,9 +32,10 @@ export const productsSlice = createSlice({
     initialState,
     reducers: {},
     extraReducers: (builder) => {
-        builder.addCase(fetchProducts.pending, (state) => {
-            state.loading = true
-        })
+        builder.
+            addCase(fetchProducts.pending, (state) => {
+                state.loading = true
+            })
             .addCase(fetchProducts.fulfilled, (state, action) => {
                 state.products = action.payload.data
                 state.loading = false
@@ -42,21 +45,23 @@ export const productsSlice = createSlice({
                 state.loading = false
             })
             .addCase(fetchProductDetails.pending, (state) => {
-                state.loading = true
+                state.fecthLoader = true
             })
             .addCase(fetchProductDetails.fulfilled, (state, action) => {
                 state.productDetails = action.payload.data
-                state.loading = false
+                state.isFav = action.payload.data.favourite
+                state.fecthLoader = false
             })
             .addCase(fetchProductDetails.rejected, (state, action) => {
                 state.error = action.error.message
-                state.loading = false
+                state.fecthLoader = false
             })
             .addCase(addToFavourite.pending, (state) => {
                 // state.loading = true
             })
             .addCase(addToFavourite.fulfilled, (state, action) => {
                 state.productDetails = action.payload.data
+                state.isFav = action.payload.data.favourite
                 state.loading = false
             })
     }

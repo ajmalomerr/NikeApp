@@ -52,7 +52,7 @@ const StackNavigator = () => {
 
             />
             <Stack.Screen name="ProductDetailsScreen" component={ProductDetailsScreen} options={{ headerShown: true, }} />
-            <Stack.Screen name="ShoppingCart" component={ShoppingCart} options={{ title: "Cart", }} />
+            <Stack.Screen name="ShoppingCart" component={ShoppingCart} options={{ headerShown: false, title: "Cart", }} />
             <Stack.Screen name="Orders" component={Orders} options={{ title: "Orders", }} />
             <Stack.Screen name="FavouriteList" component={FavouriteList} options={{ title: "WISHLIST", }} />
         </Stack.Navigator>

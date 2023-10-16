@@ -1,10 +1,12 @@
-import { Text, FlatList, View, StyleSheet, Pressable, Alert, ActivityIndicator } from 'react-native';
+import { Text, FlatList, View, StyleSheet, Pressable, Alert, ActivityIndicator, SafeAreaView } from 'react-native';
 // import cart from '../data/cart';
 import CartListItem from '../components/CartListItem';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { cartSlice, creatOrders, selectDeliveryPrice, selectSubTotal, selectedCartItems, selectedTotalPrice } from '../store/cartSlice';
 import { useCreateOrderMutation } from '../store/apisLice';
+import Octicons from 'react-native-vector-icons/Octicons';
+
 
 const ShoppingCartTotals = () => {
     const Subtotal = useSelector(selectSubTotal)
@@ -34,7 +36,7 @@ const ShoppingCartTotals = () => {
     )
 };
 
-const ShoppingCart = ({ navigation }) => {
+const ShoppingCart = ({ navigation, route }) => {
     const subtotal = useSelector(selectSubTotal)
     const numberOfCartItems = useSelector(selectedCartItems)
     const delievryPrice = useSelector(selectDeliveryPrice)
@@ -67,14 +69,11 @@ const ShoppingCart = ({ navigation }) => {
         };
 
         dispatch(creatOrders(result))
-        console.log("submitted", JSON.stringify(await createOrderStatus))
-
-
     }
 
     if (createOrderStatus == "1000") {
         dispatch(cartSlice.actions.clearCart())
-        Alert.alert( "Order has been placed successfully" );
+        Alert.alert("Order has been placed successfully");
         navigation.popToTop()
     }
 
@@ -82,8 +81,20 @@ const ShoppingCart = ({ navigation }) => {
     //     return <View style={styles.loader}><ActivityIndicator color={'blue'} size={"large"} /></View>
     // }
 
+    const navigationHandle = () => {
+        if (route.params && numberOfCartItems == 0) {
+            navigation.popToTop()
+        } else {
+            navigation.goBack()
+        }
+    }
+
     return (
         <>
+            <SafeAreaView style={{ marginLeft: 10, flexDirection: "row", alignItems: "center" }}>
+                <Octicons onPress={() => navigationHandle()} name="chevron-left" size={35} color="#307aff" />
+                <Text style={{ fontWeight: '500', fontSize: 18, textAlign: "center", flex: 1, }}>Cart</Text>
+            </SafeAreaView>
             {numberOfCartItems == 0 && <View style={{ justifyContent: "center", alignItems: "center", flex: 1 }}>
                 <Text>You'r cart is empty</Text>
             </View>}
